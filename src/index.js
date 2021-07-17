@@ -1,5 +1,6 @@
 const express = require('express');
 const multer = require('multer');
+const { ApplicationError } = require('./error/ApplicationError');
 const uploadConfig = require('./upload/uploadConfig');
 
 const app = express();
@@ -35,7 +36,7 @@ app.get('/disciplinas/:id', (request, response) => {
     const { id } = request.params;
 
     if(id!=='tecnologia'){
-        return response.status(400).json({mensagem: 'Não foi possível processar sua requisição.'})
+        throw new ApplicationError('Disciplina não encontrada!', 404);
     }
 
     return response.json({id});
@@ -57,6 +58,15 @@ app.delete('/disciplinas', (request, response) => {
         message: 'Remover disciplina!'
     })
 })
+
+app.use((error, request, response, next) => {
+    if(error instanceof ApplicationError) {
+        return response.status(error.httpStatusCode).json({message: error.mensagem});
+    }
+
+    return response.status(500).json({mensagem: 'Não foi possível processar sua requisição.'})
+
+});
 
 /*
 app.post('/perfil', uploadMiddleware.single('avatar'), function (request, response, next){
