@@ -1,8 +1,13 @@
 const express = require('express');
+const multer = require('multer');
+const uploadConfig = require('./upload/uploadConfig');
 
 const app = express();
+const uploadMiddleware = multer(uploadConfig);
 
 app.use(express.json());
+
+app.use('/imagens', express.static(uploadConfig.directory));
 
 function monitorarRequisicoes(request, response, next) {
     const { method, url, params, body, query } = request;
@@ -36,7 +41,7 @@ app.get('/disciplinas/:id', (request, response) => {
     return response.json({id});
 })
 
-app.post('/disciplinas', (request, response) => {
+app.post('/disciplinas', uploadMiddleware.single('avatar'), (request, response) => {
     const body = request.body;
     return response.json(body);
 })
@@ -52,5 +57,17 @@ app.delete('/disciplinas', (request, response) => {
         message: 'Remover disciplina!'
     })
 })
+
+/*
+app.post('/perfil', uploadMiddleware.single('avatar'), function (request, response, next){
+})
+
+app.post('/fotos/upload', uploadMiddleware.array('images', 12), function(request, response, next){
+})
+
+let cpUpload = uploadMiddleware.fields([{name: 'avatar', maxCount: 1}, {name: 'galeria', maxCount: 8}])
+app.post('/imagem-perfil', cpUpload, function(request, response, next){
+})
+*/
 
 app.listen(3000);
