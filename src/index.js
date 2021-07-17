@@ -1,5 +1,7 @@
 const express = require('express');
+const { sign } = require('jsonwebtoken');
 const multer = require('multer');
+const { validaToken } = require('./auth/ValidaToken');
 const { ApplicationError } = require('./error/ApplicationError');
 const uploadConfig = require('./upload/uploadConfig');
 
@@ -32,7 +34,7 @@ app.get('/disciplinas', monitorarRequisicoes, (request, response) => {
     return response.json(query);
 })
 
-app.get('/disciplinas/:id', (request, response) => {
+app.get('/disciplinas/:id', validaToken, (request, response) => {
     const { id } = request.params;
 
     if(id!=='tecnologia'){
@@ -57,6 +59,24 @@ app.delete('/disciplinas', (request, response) => {
     return response.json({
         message: 'Remover disciplina!'
     })
+})
+
+app.post('/autenticacao', (request, response) => {
+    const {email, senha } = request.body;
+
+    // validações quanto ao e-mail e senha
+    const idUsuario = 'XPTO';
+
+    const token = sign({
+        // não incluir informações sensíveis
+        // permissões, etc..
+    }, 'minha-chave-secreta', {
+        subject: idUsuario,
+        expiresIn: '1d'
+    });
+
+    return response.json({token});
+
 })
 
 app.use((error, request, response, next) => {
